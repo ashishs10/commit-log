@@ -21,8 +21,35 @@ async function signUpController(req, res) {
   const password = user.password;
   const email = user.email;
 
+  if (!username || !password || !email) {
+    res.status(400).json({
+      success: false,
+      message: "required field missing",
+    });
+    return;
+  }
+
   const hashedPassword = await passwordHash(password);
-  const query = `insert into users (username, passwrod_has, uemail) values($1, $2, $3)`;
+  const query = `insert into users (username, password_hash, email) values($1, $2, $3) returning username, email`;
+  const response = await pool.query(query, [username, hashedPassword, email]);
+
+  console.log("query response ", response.rows);
+
+  const new_user = response.rows[0];
+
+  if (response.rows.length === 0) {
+    res.status(400).json({
+      success: false,
+      message: "something went wrong",
+    });
+    return;
+  }
+
+  res.status(201).json({
+    success: true,
+    message: "user created successfully",
+    data: new_user,
+  });
 }
 
 // password brcypt
@@ -33,3 +60,8 @@ async function passwordHash(plainPassword) {
 
   return hashed;
 }
+
+export default {
+  signUpController,
+  loginController,
+};

@@ -38,3 +38,7 @@ function authMiddleware(req, res, next) {
     return;
   }
 }
+
+module.exports = {
+  authMiddleware: authMiddleware,
+};

@@ -1,4 +1,5 @@
 import express from "express";
+import userController from "../controllers/loginController.js";
 
 const router = express.Router();
 
@@ -8,5 +9,9 @@ router.get("/health", (req, res) => {
     message: "ok",
   });
 });
+
+router.post("/login", userController.loginController);
+
+router.post("/signup", userController.signUpController);
 
 export default router;
