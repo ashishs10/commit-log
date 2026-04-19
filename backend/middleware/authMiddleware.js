@@ -39,6 +39,6 @@ function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = {
-  authMiddleware: authMiddleware,
+export default {
+  authMiddleware,
 };
