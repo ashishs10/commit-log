@@ -1,5 +1,6 @@
 import pool from "../db/pool.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 async function loginController(req, res) {
   const user = req.body;
@@ -13,55 +14,54 @@ async function loginController(req, res) {
     });
     return;
   }
-}
+  try {
+    const loginQuery = `select username, password_hash from users where username = $1`;
+    const response = await pool.query(loginQuery, [username]);
 
-async function signUpController(req, res) {
-  const user = req.body;
-  const username = user.username;
-  const password = user.password;
-  const email = user.email;
+    console.log("login query response : ", response.rows);
 
-  if (!username || !password || !email) {
-    res.status(400).json({
-      success: false,
-      message: "required field missing",
+    if (response.rows.length === 0) {
+      res.status(401).json({
+        success: false,
+        message: "invalid credentials",
+      });
+      return;
+    }
+
+    const userDetail = response.rows[0];
+
+    const isMatch = await bcrypt.compare(password, userDetail.password_hash);
+    console.log("password match: ", isMatch);
+
+    if (!isMatch) {
+      res.status(401).json({
+        success: false,
+        message: "invalid credentials",
+      });
+      return;
+    }
+
+    const payload = {
+      username: userDetail?.username,
+    };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.status(200).json({
+      success: true,
+      token: `Bearer ${token}`,
     });
     return;
-  }
-
-  const hashedPassword = await passwordHash(password);
-  const query = `insert into users (username, password_hash, email) values($1, $2, $3) returning username, email`;
-  const response = await pool.query(query, [username, hashedPassword, email]);
-
-  console.log("query response ", response.rows);
-
-  const new_user = response.rows[0];
-
-  if (response.rows.length === 0) {
-    res.status(400).json({
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
       success: false,
-      message: "something went wrong",
+      message: "internal server error",
     });
-    return;
   }
-
-  res.status(201).json({
-    success: true,
-    message: "user created successfully",
-    data: new_user,
-  });
-}
-
-// password brcypt
-async function passwordHash(plainPassword) {
-  const saltRound = 10;
-  const hashed = await bcrypt.hash(plainPassword, saltRound);
-  console.log(hashed);
-
-  return hashed;
 }
 
 export default {
-  signUpController,
   loginController,
 };

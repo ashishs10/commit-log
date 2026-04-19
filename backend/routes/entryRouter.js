@@ -1,5 +1,6 @@
 import express from "express";
-import userController from "../controllers/loginController.js";
+import loginController from "../controllers/loginController.js";
+import signUpController from "../controllers/signupController.js";
 
 const router = express.Router();
 
@@ -10,8 +11,8 @@ router.get("/health", (req, res) => {
   });
 });
 
-router.post("/login", userController.loginController);
+router.post("/login", loginController.loginController);
 
-router.post("/signup", userController.signUpController);
+router.post("/signup", signUpController.signUpController);
 
 export default router;
