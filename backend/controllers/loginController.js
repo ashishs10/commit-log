@@ -18,8 +18,6 @@ async function loginController(req, res) {
     const loginQuery = `select username, password_hash from users where username = $1`;
     const response = await pool.query(loginQuery, [username]);
 
-    console.log("login query response : ", response.rows);
-
     if (response.rows.length === 0) {
       res.status(401).json({
         success: false,

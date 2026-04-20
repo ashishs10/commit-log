@@ -19,7 +19,7 @@ router.post("/signup", signUpController.signUpController);
 
 router.get(
   "/entries",
-  // authMiddleware.authMiddleware,
+  authMiddleware.authMiddleware,
   entriesController.getEntries,
 );
 
